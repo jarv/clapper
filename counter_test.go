@@ -18,19 +18,19 @@ func TestAdd(t *testing.T) {
 			name:         "add once",
 			initialValue: 0,
 			numAdds:      1,
-			want:         1,
+			want:         1 * tickInt,
 		},
 		{
 			name:         "add multiple",
 			initialValue: 0,
 			numAdds:      9000,
-			want:         9000,
+			want:         9000 * tickInt,
 		},
 		{
 			name:         "add with initial value",
 			initialValue: 100,
 			numAdds:      9000,
-			want:         9100,
+			want:         100 + (9000 * tickInt),
 		},
 	}
 
@@ -60,19 +60,19 @@ func TestDisp(t *testing.T) {
 		want         string
 	}{
 		{
-			initialValue: (4783181 * 1000),
+			initialValue: 4783181 * 1000,
 			want:         "55d:8h:39m:41.0s",
 		},
 		{
-			initialValue: (4210 * 1000),
+			initialValue: 4210 * 1000,
 			want:         "1h:10m:10.0s",
 		},
 		{
-			initialValue: (190 * 1000),
+			initialValue: 190 * 1000,
 			want:         "3m:10.0s",
 		},
 		{
-			initialValue: (12 * 1000),
+			initialValue: 12 * 1000,
 			want:         "12.0s",
 		},
 		{

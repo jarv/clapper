@@ -24,8 +24,11 @@ const (
 	// How often to persist the counter value to disk
 	persistPeriod = 10 * time.Second
 
-	// Send a counter with this period
-	countPeriod = 1 * time.Millisecond
+	// interval for generating a tick (ms)
+	tickInt = 100
+
+	// Setup a counter with this period
+	countPeriod = tickInt * time.Millisecond
 
 	// How often to write to the client
 	writePeriod = 100 * time.Millisecond
@@ -39,10 +42,6 @@ var (
 	upgrader  = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
-		// CheckOrigin: func(r *http.Request) bool {
-		// 	origin := r.Header.Get("Origin")
-		// 	return origin == "http://localhost:1313"
-		// },
 	}
 )
 

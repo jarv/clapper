@@ -24,7 +24,7 @@ func NewCounter(initialValue uint64) *Counter {
 }
 
 func (c *Counter) Inc() {
-	atomic.AddUint64(&c.counter, 1)
+	atomic.AddUint64(&c.counter, 1*tickInt)
 }
 
 func (c *Counter) Load() uint64 {
