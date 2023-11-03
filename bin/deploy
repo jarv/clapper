@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -euf -o pipefail
+
+HOST="i.jarv.org"
+
+usage() {
+  cat <<EOF
+Usage: $0
+
+Deploys image to $HOST
+EOF
+}
+
+getImgID() {
+  local imgID
+  imgID=$(docker image ls -q "$1")
+  if [[ -z "$imgID" ]]; then
+    printf "Image not found for '%s'!\n" "$1" 1>&2
+    return 1
+  fi
+  return 0
+}
+
+loadImg() {
+  local img="$1"
+  local fname="/tmp/${img}.tar"
+
+  printf "Saving %s ... " "$img"
+  docker save "$img" > "$fname"
+  printf "Transfering ... "
+  scp -q "$fname" "$HOST:$fname"
+  printf "Loading ...\n"
+  # shellcheck disable=SC2029
+  ssh $HOST "sudo bootstrap docker_load $fname"
+  rm -f "$fname"
+}
+
+while getopts "h?" opt; do
+  case "$opt" in
+    h | \?)
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+imgs=(
+  "wscnt"
+)
+
+# Test that images exist
+for img in "${imgs[@]}"; do
+  if ! getImgID "$img"; then
+    printf "Image check failed!" 1>&2
+    exit 1
+  fi
+done
+
+for img in "${imgs[@]}"; do
+  loadImg "$img"
+done
+
+ssh $HOST "sudo bootstrap restart_service wscnt"

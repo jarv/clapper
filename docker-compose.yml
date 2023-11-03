@@ -1,0 +1,19 @@
+# To run:
+#   docker-compose up
+#   http://localhost:8100/
+
+version: '3.9'
+services:
+  wscnt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wscnt
+    ports:
+      - 8710
+  caddy:
+    image: caddy
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 8100:80

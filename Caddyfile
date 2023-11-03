@@ -1,0 +1,3 @@
+:80 {
+    reverse_proxy wscnt:8710
+}
