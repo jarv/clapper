@@ -1,6 +1,6 @@
 ## wscnt
 
-This is a simple example of implementing websockets, sending an update every centisecond to the client, with a human-friendly display of `xxd:xxh:xxm:xx.xs`
+This is a simple example of implementing a websocket connection in Go, sending an update every one-tenth of a second to the client with a human-friendly display of `xxd:xxh:xxm:xx.xs`.
 
 On receiving a `PUT` to the `/reset` endpoint, the counter will be reset to `0`.
 
