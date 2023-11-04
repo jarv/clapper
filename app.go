@@ -198,31 +198,63 @@ func main() {
 	log.Fatal(server.ListenAndServe())
 }
 
-const homeHTML = `<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>WebSocket Example</title>
-    </head>
-    <body>
-		<button onclick="resetCnt()">👇 <span style="font-family: monospace;" id="cnt"></span></button>
-        <script type="text/javascript">
-            function resetCnt() {
-              fetch("//{{.Host}}/reset", {
-                method: "PUT",
-              })
-            }
-            (function() {
-                var data = document.getElementById("cnt");
-				var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
-				var conn = new WebSocket(wss + "//{{.Host}}/ws")
-                conn.onclose = function(evt) {
-                    data.textContent = 'Connection closed';
-                }
-                conn.onmessage = function(evt) {
-                    data.textContent = evt.data;
-                }
-            })();
-        </script>
-    </body>
+const homeHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Example</title>
+  <style>
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.large-button {
+  width: 200px;
+  height: 200px;
+  background-color: blue;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-family: monospace;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0);
+  transition: all 0.3s;
+}
+
+.large-button:hover {
+  transform: scale(1.02); /* Slightly scale the button on hover */
+}
+
+.large-button:active {
+  transform: scale(0.96); /* Slightly scale down on click */
+}
+  </style>
+</head>
+<body>
+<button onclick="resetCnt()" id="cnt" class="large-button"></button>
+    <script type="text/javascript">
+      function resetCnt() {
+        fetch("//{{.Host}}/reset", {
+        method: "PUT",
+        })
+      }
+      (function() {
+        var data = document.getElementById("cnt");
+    var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
+    var conn = new WebSocket(wss + "//{{.Host}}/ws")
+        conn.onclose = function(evt) {
+          data.textContent = 'Connection closed';
+        }
+        conn.onmessage = function(evt) {
+          data.textContent = evt.data;
+        }
+      })();
+    </script>
+</body>
 </html>
 `
