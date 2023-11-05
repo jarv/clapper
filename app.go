@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -42,6 +43,10 @@ var (
 	upgrader  = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("Origin")
+			return isJarvOrg(origin) || isLocalhost(origin)
+		},
 	}
 )
 
@@ -140,6 +145,7 @@ func serveHome(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
 	var v = struct {
 		Host string
 		Data string
@@ -155,8 +161,31 @@ func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	origin := r.Header.Get("Origin")
+	if isJarvOrg(origin) || isLocalhost(origin) {
+		allowOrigin(w, r)
+	}
+
 	cnt.Reset()
 	w.WriteHeader(http.StatusOK)
+}
+
+func isLocalhost(origin string) bool {
+	return strings.HasPrefix(origin, "http://localhost") ||
+		strings.HasPrefix(origin, "https://localhost") ||
+		strings.HasPrefix(origin, "http://127.0.0.1") ||
+		strings.HasPrefix(origin, "https://127.0.0.1")
+}
+
+func isJarvOrg(origin string) bool {
+	return strings.HasPrefix(origin, "http://jarv.org") ||
+		strings.HasPrefix(origin, "https://jarv.org")
+}
+
+func allowOrigin(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	w.Header().Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Methods", "PUT")
 }
 
 func main() {
@@ -187,6 +216,14 @@ func main() {
 	})
 
 	http.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			origin := r.Header.Get("Origin")
+			if isJarvOrg(origin) || isLocalhost(origin) {
+				allowOrigin(w, r)
+			}
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		resetCnt(cnt, w, r)
 	})
 
