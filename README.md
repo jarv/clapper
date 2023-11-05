@@ -6,7 +6,7 @@ On receiving a `PUT` to the `/reset` endpoint, the counter will be reset to `0`.
 
 Uses [gorilla/websocket](https://github.com/gorilla/websocket), see also [websocket examples](https://github.com/gorilla/websocket/tree/main/examples) for other very simple websocket implementations.
 
-View the [demo](https://wscnt.jarv.org)
+View the [demo](https://count.jarv.org)
 
 ## Local development
 
