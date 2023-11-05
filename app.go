@@ -36,8 +36,15 @@ const (
 )
 
 var (
-	addr  = flag.String("addr", ":8710", "http service address")
-	fname = flag.String("fname", "", "file to persist counter (opt)")
+	addr         = flag.String("addr", ":8710", "http service address")
+	fname        = flag.String("fname", "", "file to persist counter (opt)")
+	allowedHosts = []string{
+		"jarv.org",
+		"ws.jarv.org",
+		"count.jarv.org",
+		"localhost",
+		"127.0.0.1",
+	}
 
 	homeTempl = template.Must(template.New("").Parse(homeHTML))
 	upgrader  = websocket.Upgrader{
@@ -45,7 +52,7 @@ var (
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
 			origin := r.Header.Get("Origin")
-			return isJarvOrg(origin) || isLocalhost(origin)
+			return isAllowedHost(origin)
 		},
 	}
 )
@@ -162,7 +169,7 @@ func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	origin := r.Header.Get("Origin")
-	if isJarvOrg(origin) || isLocalhost(origin) {
+	if isAllowedHost(origin) {
 		allowOrigin(w, r)
 	}
 
@@ -170,16 +177,15 @@ func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func isLocalhost(origin string) bool {
-	return strings.HasPrefix(origin, "http://localhost") ||
-		strings.HasPrefix(origin, "https://localhost") ||
-		strings.HasPrefix(origin, "http://127.0.0.1") ||
-		strings.HasPrefix(origin, "https://127.0.0.1")
-}
+func isAllowedHost(origin string) bool {
+	for _, h := range allowedHosts {
+		if strings.HasPrefix(origin, "https://"+h) ||
+			strings.HasPrefix(origin, "http://"+h) {
+			return true
+		}
+	}
 
-func isJarvOrg(origin string) bool {
-	return strings.HasPrefix(origin, "http://jarv.org") ||
-		strings.HasPrefix(origin, "https://jarv.org")
+	return false
 }
 
 func allowOrigin(w http.ResponseWriter, r *http.Request) {
@@ -218,7 +224,7 @@ func main() {
 	http.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			origin := r.Header.Get("Origin")
-			if isJarvOrg(origin) || isLocalhost(origin) {
+			if isAllowedHost(origin) {
 				allowOrigin(w, r)
 			}
 			w.WriteHeader(http.StatusOK)
@@ -239,7 +245,7 @@ const homeHTML = `
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WebSocket Example</title>
+  <title>Counter</title>
   <style>
 body {
   display: flex;
@@ -264,11 +270,11 @@ body {
 }
 
 .large-button:hover {
-  transform: scale(1.02); /* Slightly scale the button on hover */
+  transform: scale(1.02);
 }
 
 .large-button:active {
-  transform: scale(0.96); /* Slightly scale down on click */
+  transform: scale(0.96);
 }
   </style>
 </head>
@@ -282,8 +288,8 @@ body {
       }
       (function() {
         var data = document.getElementById("cnt");
-    var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
-    var conn = new WebSocket(wss + "//{{.Host}}/ws")
+        var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
+        var conn = new WebSocket(wss + "//{{.Host}}/ws")
         conn.onclose = function(evt) {
           data.textContent = 'Connection closed';
         }
