@@ -297,6 +297,11 @@ div.like span {
 }
 
 @media (prefers-color-scheme: dark) {
+  html {
+    background-color: #333;
+    color: #ddd;
+  }
+
   div.like button {
     background-color: black;
   }
@@ -306,6 +311,8 @@ div.like span {
     background-color: #282828;
   }
 }  
+
+
 </style>
 </head>
 <body>
