@@ -40,8 +40,10 @@ var (
 	fname        = flag.String("fname", "", "file to persist counter (opt)")
 	allowedHosts = []string{
 		"jarv.org",
-		"ws.jarv.org",
-		"count.jarv.org",
+		"like.jarv.org",
+		"cmdchallenge.com",
+		"12days.cmdchallenge.com",
+		"oops.cmdchallenge.com",
 		"localhost",
 		"127.0.0.1",
 	}
