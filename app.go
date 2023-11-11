@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"html/template"
-	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -55,6 +55,7 @@ var (
 			return isAllowedHost(origin)
 		},
 	}
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 )
 
 func reader(ws *websocket.Conn) {
@@ -123,7 +124,8 @@ func persistCount(c *Counter, s Storer) {
 			}
 
 			if err := s.Write(c.Load()); err != nil {
-				slog.Error("Persisting count to a file failed!", "err", err)
+				logger.Error("Persisting count to a file failed!", "err", err)
+				os.Exit(1)
 			}
 		}
 	}
@@ -133,7 +135,7 @@ func serveWs(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
-			log.Println(err)
+			logger.Error("websocket upgrade error", "err", err)
 		}
 		return
 	}
@@ -173,6 +175,7 @@ func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		allowOrigin(w, r)
 	}
 
+	logger.Info("Counter reset!", "RemoteAddr", r.RemoteAddr)
 	cnt.Reset()
 	w.WriteHeader(http.StatusOK)
 }
@@ -206,7 +209,8 @@ func main() {
 
 	initialValue, err := store.Read()
 	if err != nil {
-		log.Fatalf("Unable to read from storage: %v", err)
+		logger.Error("Unable to read from storage", "err", err)
+		os.Exit(1)
 	}
 
 	cnt := NewCounter(initialValue)
@@ -237,8 +241,11 @@ func main() {
 		Addr:              *addr,
 		ReadHeaderTimeout: 3 * time.Second,
 	}
-	slog.Info("Server started", "addr", *addr)
-	log.Fatal(server.ListenAndServe())
+	logger.Info("Server started", "addr", *addr)
+	if err := server.ListenAndServe(); err != nil {
+		logger.Error("Unable to setup listener", "err", err)
+		os.Exit(1)
+	}
 }
 
 const homeHTML = `
@@ -255,49 +262,74 @@ body {
   margin: 0;
 }
 
-.large-button {
+div.like {
+  font-size: 24px;
+}
+
+div.like button {
+  font-family: 'Courier New', monospace;
+  border: 0 solid #333;
+  border-radius: 50%;
   width: 200px;
   height: 200px;
-  background-color: blue;
-  border: none;
-  border-radius: 50%;
-  color: white;
-  font-family: monospace;
-  font-size: 24px;
+  color: #333;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0);
-  transition: all 0.3s;
+  box-shadow: none;
+  font-size: 120px;
 }
 
-.large-button:hover {
-  transform: scale(1.02);
-}
-
-.large-button:active {
+div.like button:active {
   transform: scale(0.96);
 }
-  </style>
+
+div.like button:hover {
+  background-color: #e0e0e0;
+  outline: 1px solid gray;
+}
+
+div.like span {
+  filter: grayscale(100%);
+  color: #888;
+  font-family: 'Courier New', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  div.like button {
+    background-color: black;
+  }
+
+  div.like button:hover {
+    outline: 1px solid dimgray;
+    background-color: #282828;
+  }
+}  
+</style>
 </head>
 <body>
-<button onclick="resetCnt()" id="cnt" class="large-button"></button>
-    <script type="text/javascript">
-      function resetCnt() {
-        fetch("//{{.Host}}/reset", {
-        method: "PUT",
-        })
-      }
-      (function() {
-        var data = document.getElementById("cnt");
-        var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
-        var conn = new WebSocket(wss + "//{{.Host}}/ws")
-        conn.onclose = function(evt) {
-          data.textContent = 'Connection closed';
-        }
-        conn.onmessage = function(evt) {
-          data.textContent = evt.data;
-        }
-      })();
-    </script>
+<div class="like">
+  <button onclick="resetCnt()"><span>👍</span></button>
+  <span id="cnt"></span> since the last like
+</div>
+
+<script type="text/javascript">
+  function resetCnt() {
+	fetch("//{{.Host}}/reset", {
+	method: "PUT",
+	})
+  }
+  (function() {
+	var data = document.getElementById("cnt");
+	var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
+	var conn = new WebSocket(wss + "//{{.Host}}/ws")
+	conn.onclose = function(evt) {
+	  data.textContent = 'Connection closed';
+	}
+	conn.onmessage = function(evt) {
+	  data.textContent = evt.data;
+	}
+  })();
+</script>
 </body>
 </html>
 `
