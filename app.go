@@ -285,9 +285,11 @@ div.like button:active {
   transform: scale(0.96);
 }
 
-div.like button:hover {
-  background-color: #e0e0e0;
-  outline: 1px solid gray;
+@media (hover: hover) {
+  div.like button:hover {
+    background-color: #e0e0e0;
+    outline: 1px solid gray;
+  }
 }
 
 div.like span {
@@ -295,23 +297,6 @@ div.like span {
   color: #888;
   font-family: 'Courier New', monospace;
 }
-
-@media (prefers-color-scheme: dark) {
-  html {
-    background-color: #333;
-    color: #ddd;
-  }
-
-  div.like button {
-    background-color: black;
-  }
-
-  div.like button:hover {
-    outline: 1px solid dimgray;
-    background-color: #282828;
-  }
-}  
-
 
 </style>
 </head>
