@@ -33,6 +33,8 @@ const (
 
 	// How often to write to the client
 	writePeriod = 100 * time.Millisecond
+
+	ConnLimit = 50
 )
 
 var (
@@ -57,7 +59,8 @@ var (
 			return isAllowedHost(origin)
 		},
 	}
-	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger      = slog.New(slog.NewJSONHandler(os.Stderr, nil))
+	connLimiter = make(chan struct{}, ConnLimit)
 )
 
 func reader(ws *websocket.Conn) {
@@ -85,20 +88,29 @@ func writer(cnt *Counter, ws *websocket.Conn) {
 		pingTicker.Stop()
 		writeTicker.Stop()
 		ws.Close()
+		<-connLimiter
+		logger.Info("Finished connection", "remoteAddr", ws.RemoteAddr().String())
 	}()
-	for {
-		select {
-		case <-writeTicker.C:
-			ws.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := ws.WriteMessage(websocket.TextMessage, []byte(cnt.Disp())); err != nil {
-				return
-			}
-		case <-pingTicker.C:
-			ws.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				return
+
+	select {
+	case connLimiter <- struct{}{}:
+		logger.Info("Starting connection", "remoteAddr", ws.RemoteAddr().String())
+		for {
+			select {
+			case <-writeTicker.C:
+				ws.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := ws.WriteMessage(websocket.TextMessage, []byte(cnt.Disp())); err != nil {
+					return
+				}
+			case <-pingTicker.C:
+				ws.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					return
+				}
 			}
 		}
+	default:
+		logger.Warn("Too many connections!", "remoteAddr", ws.RemoteAddr().String())
 	}
 }
 
@@ -220,14 +232,17 @@ func main() {
 	go persistCount(cnt, store)
 	go incCount(cnt)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		serveHome(cnt, w, r)
 	})
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(cnt, w, r)
 	})
 
-	http.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			origin := r.Header.Get("Origin")
 			if isAllowedHost(origin) {
@@ -242,7 +257,9 @@ func main() {
 	server := &http.Server{
 		Addr:              *addr,
 		ReadHeaderTimeout: 3 * time.Second,
+		Handler:           mux,
 	}
+
 	logger.Info("Server started", "addr", *addr)
 	if err := server.ListenAndServe(); err != nil {
 		logger.Error("Unable to setup listener", "err", err)
@@ -264,11 +281,11 @@ body {
   margin: 0;
 }
 
-div.like {
+div#like {
   font-size: 24px;
 }
 
-div.like button {
+div#like button {
   font-family: 'Courier New', monospace;
   border: 0 solid #333;
   border-radius: 50%;
@@ -281,7 +298,7 @@ div.like button {
   font-size: 120px;
 }
 
-div.like button:active {
+div#like button:active {
   transform: scale(0.96);
 }
 
@@ -292,7 +309,7 @@ div.like button:active {
   }
 }
 
-div.like span {
+div#like span {
   filter: grayscale(100%);
   color: #888;
   font-family: 'Courier New', monospace;
@@ -301,7 +318,7 @@ div.like span {
 </style>
 </head>
 <body>
-<div class="like">
+<div id="like">
   <button onclick="resetCnt()"><span>👍</span></button>
   <span id="cnt"></span> since the last like
 </div>
@@ -310,14 +327,15 @@ div.like span {
   function resetCnt() {
 	fetch("//{{.Host}}/reset", {
 	method: "PUT",
-	})
+	});
   }
   (function() {
 	var data = document.getElementById("cnt");
-	var wss = (window.location.protocol == "https:") ? "wss:" : "ws:"
-	var conn = new WebSocket(wss + "//{{.Host}}/ws")
+	var like = document.getElementById("like");
+	var wss = (window.location.protocol == "https:") ? "wss:" : "ws:";
+	var conn = new WebSocket(wss + "//{{.Host}}/ws");
 	conn.onclose = function(evt) {
-	  data.textContent = 'Connection closed';
+	  like.style.display = "none";
 	}
 	conn.onmessage = function(evt) {
 	  data.textContent = evt.data;
