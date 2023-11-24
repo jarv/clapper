@@ -34,7 +34,8 @@ const (
 	// How often to write to the client
 	writePeriod = 1 * time.Second
 
-	ConnLimit = 50
+	connLimit = 50
+	indexTmpl = "index.html"
 )
 
 var (
@@ -50,7 +51,7 @@ var (
 		"127.0.0.1",
 	}
 
-	homeTempl = template.Must(template.New("").Parse(homeHTML))
+	homeTempl = template.Must(template.New(indexTmpl).ParseFiles(indexTmpl))
 	upgrader  = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -60,7 +61,7 @@ var (
 		},
 	}
 	logger      = slog.New(slog.NewJSONHandler(os.Stderr, nil))
-	connLimiter = make(chan struct{}, ConnLimit)
+	connLimiter = make(chan struct{}, connLimit)
 )
 
 func reader(ws *websocket.Conn) {
@@ -169,14 +170,14 @@ func serveHome(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	var v = struct {
+	d := struct {
 		Host string
-		Data string
+		Cnt  string
 	}{
 		r.Host,
 		cnt.Disp(),
 	}
-	homeTempl.Execute(w, &v)
+	homeTempl.Execute(w, d)
 }
 
 func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
@@ -266,82 +267,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-const homeHTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Counter</title>
-  <style>
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-
-div#like {
-  font-size: 24px;
-}
-
-div#like button {
-  font-family: 'Courier New', monospace;
-  border: 0 solid #333;
-  border-radius: 50%;
-  width: 200px;
-  height: 200px;
-  color: #333;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: none;
-  font-size: 120px;
-}
-
-div#like button:active {
-  transform: scale(0.96);
-}
-
-@media (hover: hover) {
-  div.like button:hover {
-    background-color: #e0e0e0;
-    outline: 1px solid gray;
-  }
-}
-
-div#like span {
-  filter: grayscale(100%);
-  color: #888;
-  font-family: 'Courier New', monospace;
-}
-
-</style>
-</head>
-<body>
-<div id="like">
-  <button onclick="resetCnt()"><span>👍</span></button>
-  <span id="cnt"></span> since the last like
-</div>
-
-<script type="text/javascript">
-  function resetCnt() {
-	fetch("//{{.Host}}/reset", {
-	method: "PUT",
-	});
-  }
-  (function() {
-	var data = document.getElementById("cnt");
-	var like = document.getElementById("like");
-	var wss = (window.location.protocol == "https:") ? "wss:" : "ws:";
-	var conn = new WebSocket(wss + "//{{.Host}}/ws");
-	conn.onclose = function(evt) {
-	  like.style.display = "none";
-	}
-	conn.onmessage = function(evt) {
-	  data.textContent = evt.data;
-	}
-  })();
-</script>
-</body>
-</html>
-`
