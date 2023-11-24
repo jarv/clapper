@@ -32,7 +32,7 @@ const (
 	countPeriod = tickInt * time.Millisecond
 
 	// How often to write to the client
-	writePeriod = 100 * time.Millisecond
+	writePeriod = 1 * time.Second
 
 	ConnLimit = 50
 )

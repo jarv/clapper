@@ -63,7 +63,7 @@ func dispTime(ms uint64) string {
 	ms = ms % msInMin
 	numSeconds := ms / msInSec
 	ms = ms % msInSec
-	disp = append(disp, fmt.Sprintf("%02d.%ds", numSeconds, int(float64(ms)/100)))
+	disp = append(disp, fmt.Sprintf("%02ds", numSeconds))
 
 	return strings.Join(disp, ":")
 }

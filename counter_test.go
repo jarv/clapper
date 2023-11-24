@@ -61,35 +61,35 @@ func TestDisp(t *testing.T) {
 	}{
 		{
 			initialValue: 4783181 * 1000,
-			want:         "55d:8h:39m:41.0s",
+			want:         "55d:8h:39m:41s",
 		},
 		{
 			initialValue: 4210 * 1000,
-			want:         "1h:10m:10.0s",
+			want:         "1h:10m:10s",
 		},
 		{
 			initialValue: 190 * 1000,
-			want:         "3m:10.0s",
+			want:         "3m:10s",
 		},
 		{
 			initialValue: 12 * 1000,
-			want:         "12.0s",
+			want:         "12s",
 		},
 		{
 			initialValue: 500,
-			want:         "00.5s",
+			want:         "00s",
 		},
 		{
 			initialValue: 0,
-			want:         "00.0s",
+			want:         "00s",
 		},
 		{
 			initialValue: 100,
-			want:         "00.1s",
+			want:         "00s",
 		},
 		{
 			initialValue: 985,
-			want:         "00.9s",
+			want:         "00s",
 		},
 	}
 
@@ -132,7 +132,7 @@ func TestReset(t *testing.T) {
 			}
 			c.Reset()
 			assert.Equal(t, uint64(0), c.Load())
-			assert.Equal(t, "00.0s", c.Disp())
+			assert.Equal(t, "00s", c.Disp())
 		})
 	}
 }
