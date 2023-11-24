@@ -45,7 +45,7 @@
       color: #888;
       font-family: 'Courier New', monospace;
     }
-    .noSelect {
+    .no-select {
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
@@ -54,14 +54,14 @@
       -ms-user-select: none;
       user-select: none;
     }
-    .noSelect:focus {
+    .no-select:focus {
       outline: none !important;
     }
   </style>
 </head>
 <body>
 <div id="like">
-  <button class="noSelect" onclick="resetCnt()"><span>👍</span></button>
+  <button class="no-select" onclick="resetCnt()"><span>👍</span></button>
   <span id="cnt">{{ .Cnt }}</span> since the last like
 </div>
 
