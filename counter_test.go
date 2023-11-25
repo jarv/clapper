@@ -77,19 +77,19 @@ func TestDisp(t *testing.T) {
 		},
 		{
 			initialValue: 500,
-			want:         "00s",
+			want:         "0s",
 		},
 		{
 			initialValue: 0,
-			want:         "00s",
+			want:         "0s",
 		},
 		{
 			initialValue: 100,
-			want:         "00s",
+			want:         "0s",
 		},
 		{
 			initialValue: 985,
-			want:         "00s",
+			want:         "0s",
 		},
 	}
 
@@ -132,7 +132,7 @@ func TestReset(t *testing.T) {
 			}
 			c.Reset()
 			assert.Equal(t, uint64(0), c.Load())
-			assert.Equal(t, "00s", c.Disp())
+			assert.Equal(t, "0s", c.Disp())
 		})
 	}
 }

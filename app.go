@@ -39,7 +39,7 @@ const (
 )
 
 var (
-	addr         = flag.String("addr", ":8710", "http service address")
+	addr         = flag.String("addr", "localhost:8710", "http service address")
 	fname        = flag.String("fname", "", "file to persist counter (opt)")
 	allowedHosts = []string{
 		"jarv.org",
