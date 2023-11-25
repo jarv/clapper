@@ -13,6 +13,7 @@
 
     div#like {
       font-size: 24px;
+      display: none;
     }
 
     div#like button {
@@ -60,6 +61,9 @@
   </style>
 </head>
 <body>
+<noscript>
+You must enable javascript to view this page.
+</noscript>
 <div id="like">
   <button class="no-select" onclick="resetCnt()"><span>👍</span></button>
   <span id="cnt">{{ .Cnt }}</span> since the last like
@@ -76,6 +80,7 @@
     var like = document.getElementById("like");
     var wss = (window.location.protocol == "https:") ? "wss:" : "ws:";
     var conn = new WebSocket(wss + "//{{.Host}}/ws");
+    like.style.display = "block";
     conn.onclose = function(evt) {
       like.style.display = "none";
     }

@@ -11,4 +11,4 @@ COPY --from=wscnt-builder /etc/passwd /etc/passwd
 COPY --from=wscnt-builder /app/wscnt /
 COPY --from=wscnt-builder /app/index.html /
 
-ENTRYPOINT ["/wscnt"]
+ENTRYPOINT ["/wscnt", "-addr=:8710"]
