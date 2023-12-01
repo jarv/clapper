@@ -34,7 +34,7 @@ const (
 	// How often to write to the client
 	writePeriod = 1 * time.Second
 
-	connLimit = 15
+	connLimit = 50
 	indexTmpl = "index.html"
 )
 
