@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strconv"
-	"sync"
+	"strings"
 )
 
 type Storer interface {
@@ -12,32 +13,21 @@ type Storer interface {
 	Write(value uint64) error
 }
 
-type MemStore struct {
-	mu    sync.RWMutex
-	value uint64
+type NoopStore struct{}
+
+func NewNoopStore() *NoopStore {
+	return &NoopStore{}
 }
 
-func NewMemStore() *MemStore {
-	return &MemStore{}
+func (m *NoopStore) Read() (uint64, error) {
+	return uint64(0), nil
 }
 
-func (m *MemStore) Read() (uint64, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	return m.value, nil
-}
-
-func (m *MemStore) Write(value uint64) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.value = value
-
+func (m *NoopStore) Write(value uint64) error {
 	return nil
 }
 
 type FileStore struct {
-	mu    sync.RWMutex
 	fname string
 }
 
@@ -48,16 +38,9 @@ func NewFileStore(fname string) *FileStore {
 }
 
 func (f *FileStore) Read() (uint64, error) {
-	f.mu.RLock()
-	defer f.mu.RUnlock()
-
 	_, err := os.Stat(f.fname)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return 0, nil
-		}
-
-		return 0, err
+		return 0, fmt.Errorf("FileStore Read: %w", err)
 	}
 
 	file, err := os.Open(f.fname)
@@ -75,17 +58,14 @@ func (f *FileStore) readCnt(r io.Reader) (uint64, error) {
 		return 0, err
 	}
 
-	num, err := strconv.ParseUint(string(cnt), 10, 64)
+	value, err := strconv.ParseUint(strings.TrimRight(string(cnt), "\n"), 10, 64)
 	if err != nil {
 		return 0, err
 	}
-	return num, nil
+	return value, nil
 }
 
 func (f *FileStore) Write(value uint64) error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-
 	file, err := os.Create(f.fname)
 	if err != nil {
 		return err

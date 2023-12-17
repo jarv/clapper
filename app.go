@@ -219,10 +219,11 @@ func main() {
 	if *fname != "" {
 		store = NewFileStore(*fname)
 	} else {
-		store = NewMemStore()
+		store = NewNoopStore()
 	}
 
 	initialValue, err := store.Read()
+	logger.Info("Setting initial value for counter", "initialValue", initialValue)
 	if err != nil {
 		logger.Error("Unable to read from storage", "err", err)
 		os.Exit(1)
