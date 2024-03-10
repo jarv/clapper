@@ -177,7 +177,7 @@ func serveHome(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		r.Host,
 		cnt.Disp(),
 	}
-	homeTempl.Execute(w, d)
+	_ = homeTempl.Execute(w, d)
 }
 
 func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
