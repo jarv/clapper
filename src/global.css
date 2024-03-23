@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'kalam';
+    src: url('../fonts/kalam-regular-webfont.woff2') format('woff2'),
+         url('../fonts/kalam-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'kalam';
+    src: url('../fonts/kalam-light-webfont.woff2') format('woff2'),
+         url('../fonts/kalam-light-webfont.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+}

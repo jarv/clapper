@@ -22,14 +22,14 @@ const (
 	// Send pings to client with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 
-	// How often to persist the counter value to disk
+	// How often to persist the clapper value to disk
 	persistPeriod = 10 * time.Second
 
 	// interval for generating a tick (ms)
 	tickInt = 100
 
-	// Setup a counter with this period
-	countPeriod = tickInt * time.Millisecond
+	// Setup a clapper with this period
+	clapperPeriod = tickInt * time.Millisecond
 
 	// How often to write to the client
 	writePeriod = 1 * time.Second
@@ -40,7 +40,7 @@ const (
 
 var (
 	addr         = flag.String("addr", "localhost:8710", "http service address")
-	fname        = flag.String("fname", "", "file to persist counter (opt)")
+	fname        = flag.String("fname", "", "file to persist clapper (opt)")
 	allowedHosts = []string{
 		"jarv.org",
 		"like.jarv.org",
@@ -81,7 +81,7 @@ func reader(ws *websocket.Conn) {
 	}
 }
 
-func writer(cnt *Counter, ws *websocket.Conn) {
+func writer(cnt *Clapper, ws *websocket.Conn) {
 	pingTicker := time.NewTicker(pingPeriod)
 	writeTicker := time.NewTicker(writePeriod)
 
@@ -115,8 +115,8 @@ func writer(cnt *Counter, ws *websocket.Conn) {
 	}
 }
 
-func incCount(c *Counter) {
-	cntTicker := time.NewTicker(countPeriod)
+func incCount(c *Clapper) {
+	cntTicker := time.NewTicker(clapperPeriod)
 	defer cntTicker.Stop()
 
 	for {
@@ -127,7 +127,7 @@ func incCount(c *Counter) {
 	}
 }
 
-func persistCount(c *Counter, s Storer) {
+func persistCount(c *Clapper, s Storer) {
 	persistTicker := time.NewTicker(persistPeriod)
 	defer persistTicker.Stop()
 
@@ -146,7 +146,7 @@ func persistCount(c *Counter, s Storer) {
 	}
 }
 
-func serveWs(cnt *Counter, w http.ResponseWriter, r *http.Request) {
+func serveWs(cnt *Clapper, w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
@@ -159,7 +159,7 @@ func serveWs(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 	reader(ws)
 }
 
-func serveHome(cnt *Counter, w http.ResponseWriter, r *http.Request) {
+func serveHome(cnt *Clapper, w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.Error(w, "Not found", http.StatusNotFound)
 		return
@@ -180,7 +180,7 @@ func serveHome(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 	_ = homeTempl.Execute(w, d)
 }
 
-func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
+func resetCnt(cnt *Clapper, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -190,7 +190,7 @@ func resetCnt(cnt *Counter, w http.ResponseWriter, r *http.Request) {
 		allowOrigin(w, r)
 	}
 
-	logger.Info("Counter reset!", "RemoteAddr", r.RemoteAddr)
+	logger.Info("Clapper reset!", "RemoteAddr", r.RemoteAddr)
 	cnt.Reset()
 	w.WriteHeader(http.StatusOK)
 }
@@ -223,13 +223,13 @@ func main() {
 	}
 
 	initialValue, err := store.Read()
-	logger.Info("Setting initial value for counter", "initialValue", initialValue)
+	logger.Info("Setting initial value for clapper", "initialValue", initialValue)
 	if err != nil {
 		logger.Error("Unable to read from storage", "err", err)
 		os.Exit(1)
 	}
 
-	cnt := NewCounter(initialValue)
+	cnt := NewClapper(initialValue)
 
 	go persistCount(cnt, store)
 	go incCount(cnt)

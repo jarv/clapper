@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -xe
+shopt -s globstar extglob
+CGO_ENABLED=0
+GOOS=linux
+GOARCH=arm64
+
+./bin/build-assets
+export CGO_ENABLED GOOS GOARCH
+go build -ldflags "-w" -o clapper !(*_test).go

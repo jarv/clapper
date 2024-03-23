@@ -11,9 +11,8 @@ import (
 
 func TestFileReadNoExist(t *testing.T) {
 	f := NewFileStore("/file/does/not/exist")
-	v, err := f.Read()
-	require.NoError(t, err)
-	assert.Equal(t, uint64(0), v)
+	_, err := f.Read()
+	assert.Error(t, err, "Expected an error to occur")
 }
 
 func TestFileRead(t *testing.T) {

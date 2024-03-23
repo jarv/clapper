@@ -1,6 +1,6 @@
-module github.com/jarv/wstimer
+module github.com/jarv/clapper
 
-go 1.19
+go 1.21
 
 require (
 	github.com/gorilla/websocket v1.5.0

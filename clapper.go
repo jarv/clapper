@@ -13,31 +13,31 @@ const (
 	msInSec  = 1000
 )
 
-type Counter struct {
-	counter uint64
+type Clapper struct {
+	clapper uint64
 }
 
-func NewCounter(initialValue uint64) *Counter {
-	c := Counter{}
-	atomic.StoreUint64(&c.counter, initialValue)
+func NewClapper(initialValue uint64) *Clapper {
+	c := Clapper{}
+	atomic.StoreUint64(&c.clapper, initialValue)
 	return &c
 }
 
-func (c *Counter) Inc() {
-	atomic.AddUint64(&c.counter, 1*tickInt)
+func (c *Clapper) Inc() {
+	atomic.AddUint64(&c.clapper, 1*tickInt)
 }
 
-func (c *Counter) Load() uint64 {
-	return atomic.LoadUint64(&c.counter)
+func (c *Clapper) Load() uint64 {
+	return atomic.LoadUint64(&c.clapper)
 }
 
-func (c *Counter) Disp() string {
-	ms := atomic.LoadUint64(&c.counter)
+func (c *Clapper) Disp() string {
+	ms := atomic.LoadUint64(&c.clapper)
 	return (dispTime(ms))
 }
 
-func (c *Counter) Reset() {
-	atomic.StoreUint64(&c.counter, uint64(0))
+func (c *Clapper) Reset() {
+	atomic.StoreUint64(&c.clapper, uint64(0))
 }
 
 func dispTime(ms uint64) string {

@@ -1,22 +1,25 @@
-## wscnt
+## 👏👏👏 Clapper
 
-This is a simple example of implementing a websocket connection in Go, sending an update every one-tenth of a second to the client with a human-friendly display of `xxd:xxh:xxm:xx.xs`.
+This is a simple implementation of using WebSocket connections in Go, sending an update every second to the client with a human-friendly display of `xxd:xxh:xxm:xx.xs`.
 
-On receiving a `PUT` to the `/reset` endpoint, the counter will be reset to `0`.
+On receiving a `PUT` to the `/reset` endpoint, the clapper will be reset to `0`.
 
-Uses [gorilla/websocket](https://github.com/gorilla/websocket), see also [websocket examples](https://github.com/gorilla/websocket/tree/main/examples) for other very simple websocket implementations.
+Uses [gorilla/websocket](https://github.com/gorilla/websocket)
 
-View the [demo](https://like.jarv.org)
+View the [demo](https://clapper.jarv.org)
 
 ## Local development
 
+By default it runs as a single binary
+
 ```
+mise install
+./bin/build-assets  # for htmx/tailwind
 go run !(*_test).go
 ```
 
-## Docker
+Optionally you can specify a file to persist the counter
 
 ```
-docker-compose build
-docker-compose up
+go run !(*_test).go -fname /path/to/file.
 ```

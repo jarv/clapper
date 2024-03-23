@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -xe
+npx tsc
+jsFiles=(dist/*.js)
+for jsFile in "${jsFiles[@]}"; do
+  f=$(basename "$jsFile")
+  npx esbuild "$jsFile" --sourcemap=external --outfile="static/js/$f" --bundle
+done
+npx tailwindcss -i src/global.css -o static/css/tailwind.css

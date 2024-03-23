@@ -38,7 +38,7 @@ func TestAdd(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			c := NewCounter(tt.initialValue)
+			c := NewClapper(tt.initialValue)
 			for i := 0; i < tt.numAdds; i++ {
 				c.Inc()
 			}
@@ -49,7 +49,7 @@ func TestAdd(t *testing.T) {
 
 func TestLoad(t *testing.T) {
 	for _, i := range []uint64{0, 100, 300, 9000} {
-		c := NewCounter(i)
+		c := NewClapper(i)
 		assert.Equal(t, c.Load(), i)
 	}
 }
@@ -97,7 +97,7 @@ func TestDisp(t *testing.T) {
 		tt := tt
 		t.Run(tt.want, func(t *testing.T) {
 			t.Parallel()
-			c := NewCounter(tt.initialValue)
+			c := NewClapper(tt.initialValue)
 			assert.Equal(t, tt.want, c.Disp())
 		})
 	}
@@ -126,7 +126,7 @@ func TestReset(t *testing.T) {
 		tt := tt
 		t.Run(fmt.Sprintf("InitialValue: %v NumInc: %v", tt.initialValue, tt.numInc), func(t *testing.T) {
 			t.Parallel()
-			c := NewCounter(tt.initialValue)
+			c := NewClapper(tt.initialValue)
 			for i := 0; i < tt.numInc; i++ {
 				c.Inc()
 			}
